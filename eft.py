@@ -153,22 +153,22 @@ def remotesel(win2,win2_caps,sock,src=None):
                 if not e:
                     continue
                 win2.addstr(p,0,out[sc:win2_caps[0]+sc][p])
-                if path.isdir(PWD+out[sc:win2_caps[0]+sc][p]):
+                if ls[out[sc:win2_caps[0]+sc][p]]:
                     win2.addstr('/')
                 win2.scroll(-1)
                 refresh(win2)
                 sc -= 1; e -= 1
                 win2.addstr(p,0,out[sc:win2_caps[0]+sc][p],curses.color_pair(1))
-                if path.isdir(PWD+out[sc:win2_caps[0]+sc][p]):
+                if ls[out[sc:win2_caps[0]+sc][p]]:
                     win2.addstr('/',curses.color_pair(1))
                 refresh(win2)
                 continue
             win2.addstr(p,0,out[sc:win2_caps[0]+sc][p])
-            if path.isdir(PWD+out[sc:win2_caps[0]+sc][p]):
+            if ls[out[sc:win2_caps[0]+sc][p]]:
                 win2.addstr('/')
             p -= 1; e -= 1
             win2.addstr(p,0,out[sc:win2_caps[0]+sc][p],curses.color_pair(1))
-            if path.isdir(PWD+out[sc:win2_caps[0]+sc][p]):
+            if ls[out[sc:win2_caps[0]+sc][p]]:
                 win2.addstr('/',curses.color_pair(1))
             refresh(win2)
         if k == curses.KEY_DOWN:
@@ -176,22 +176,22 @@ def remotesel(win2,win2_caps,sock,src=None):
                 continue
             if p == win2_caps[0]-1:
                 win2.addstr(p,0,out[sc:win2_caps[0]+sc][p])
-                if path.isdir(PWD+out[sc:win2_caps[0]+sc][p]):
+                if ls[out[sc:win2_caps[0]+sc][p]]:
                     win2.addstr('/')
                 win2.scroll(1)
                 refresh(win2)
                 sc += 1; e += 1
                 win2.addstr(p,0,out[sc:win2_caps[0]+sc][p],curses.color_pair(1))
-                if path.isdir(PWD+out[sc:win2_caps[0]+sc][p]):
+                if ls[out[sc:win2_caps[0]+sc][p]]:
                     win2.addstr('/',curses.color_pair(1))
                 refresh(win2)
                 continue
             win2.addstr(p,0,out[sc:win2_caps[0]+sc][p])
-            if path.isdir(PWD+out[sc:win2_caps[0]+sc][p]):
+            if ls[out[sc:win2_caps[0]+sc][p]]:
                 win2.addstr('/')
             p += 1; e += 1
             win2.addstr(p,0,out[sc:win2_caps[0]+sc][p],curses.color_pair(1))
-            if path.isdir(PWD+out[sc:win2_caps[0]+sc][p]):
+            if ls[out[sc:win2_caps[0]+sc][p]]:
                 win2.addstr('/',curses.color_pair(1))
             refresh(win2)
         if k == 10:
