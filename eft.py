@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import curses
 import socket
 from os import getenv, path, mkdir, listdir
@@ -9,9 +10,9 @@ def refresh(a,b=None):
     a.refresh()
     if b: b.refresh()
 
-def line(win, y,x, mx):
-    r = mx - x
-    win.addstr(y,x,' '*r, curses.color_pair(1))
+def line(win, y, mx):
+    r = mx-0
+    win.addstr(y,0,' '*r, curses.color_pair(1))
     refresh(win)
 
 def server(win,ow):
@@ -24,7 +25,7 @@ def server(win,ow):
     win1.bkgd(' ', curses.color_pair(2))
     win1.scrollok(1)
     refresh(win,win1)
-    line(win1, 0,0, win1_caps[1])
+    line(win1, 0, win1_caps[1])
     refresh(win1)
     title = "Erika File Transfer"
     win1.addstr(0,win1_caps[1]//2-len(title)//2,title,curses.color_pair(1))
@@ -39,10 +40,7 @@ def server(win,ow):
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     win2.addstr("Socket creado\n")
     refresh(win2)
-    privip = socket.gethostbyname(socket.gethostname())
-    win2.addstr(f"IP es {privip}\n")
-    refresh(win2)
-    sock.bind((privip, 3332))
+    sock.bind((0.0.0.0, 3332))
     win2.addstr(f"Socket escuchando en puerto 3332\n")
     refresh(win2)
     sock.listen()
@@ -321,7 +319,7 @@ def enviar(std,win,sock):
     win1_caps = win1.getmaxyx()
     win1.bkgd(' ', curses.color_pair(2))
     refresh(std,win1)
-    line(win1, 0,0, win1_caps[1])
+    line(win1, 0, win1_caps[1])
     refresh(win1)
     title = "Erika File Transfer"
     win1.addstr(0,win1_caps[1]//2-len(title)//2,title,curses.color_pair(1))
@@ -364,7 +362,7 @@ def recibir(std,win,sock):
     win1_caps = win1.getmaxyx()
     win1.bkgd(' ', curses.color_pair(2))
     refresh(std,win1)
-    line(win1, 0,0, win1_caps[1])
+    line(win1, 0, win1_caps[1])
     refresh(win1)
     title = "Erika File Transfer"
     win1.addstr(0,win1_caps[1]//2-len(title)//2,title,curses.color_pair(1))
@@ -441,7 +439,7 @@ def main(stdscr):
     win1_caps = win1.getmaxyx()
     win1.bkgd(' ', curses.color_pair(2))
     refresh(stdscr,win1)
-    line(win1,0,0,win1_caps[1])
+    line(win1,0,win1_caps[1])
     refresh(win1)
     title = "Erika File Transfer"
     win1.addstr(0,win1_caps[1]//2-len(title)//2,title,curses.color_pair(1))
