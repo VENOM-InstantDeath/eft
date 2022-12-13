@@ -40,7 +40,7 @@ def server(win,ow):
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     win2.addstr("Socket creado\n")
     refresh(win2)
-    sock.bind((0.0.0.0, 3332))
+    sock.bind(("0.0.0.0", 3332))
     win2.addstr(f"Socket escuchando en puerto 3332\n")
     refresh(win2)
     sock.listen()
