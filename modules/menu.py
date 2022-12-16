@@ -1,122 +1,101 @@
-##############################
-# TUI Menu and Scroll Module #
-# By: Darth Venom            #
-##############################
 import curses
 
-def scroll(stdscr, y: int, x: int, d: dict, limit: int, aster=0) -> None:
-    curses.use_default_colors()
-    curses.init_pair(15,0,15)
-    it = list(d.keys())
-    p = 0
-    e = 0
-    mp = 0
-    minpag = 0
-    maxpag = limit-1
-    for i in it[0:limit]:
-        stdscr.addstr(y+p, x, i)
-        p += 1
-    p = 0
-    stdscr.addstr(y+p, x, it[e], curses.color_pair(15))
+"""
+Regla estándar
+Todas las funciones para interactuar con elementos de la interfaz deben retornar int. Si deveulve 1, el bucle continúa; sino, el bucle se rompe.
+
+Todas las funciones llamadas desde un menú deben devolver 1.
+
+Al salir de un menú se debe devolver 0.
+"""
+
+def defwrite(win,wcaps,opts,mode,mdata,data,colors):
+    # No necesita 'y' y 'x' porque son 0 y 0 respectivamente
+    # O sea, desde que empieza la ventana hasta que termina
+
+    # mode 0 - Escribir todas las opciones y dejar p en 0
+    # mode 1 - Disminuir p por 1
+    # mode 2 - Aumentar p por 1
+    keys = list(opts.keys())
+    xmargin=0
+    if not mode:
+        tmp = 0
+        for i in keys[mdata[2]:mdata[3]]:
+            win.addstr(tmp,xmargin,i,curses.color_pair(colors[0]))
+            tmp += 1
+        win.addstr(0,xmargin,keys[0],curses.color_pair(colors[1]))
+        return
+    win.addstr(mdata[0],xmargin,keys[mdata[1]],curses.color_pair(colors[0]))
+    if mode == 1:
+        if not mdata[0]:  # if p == minlim
+            win.scroll(-1)
+            mdata[1] -= 1
+            mdata[2] -= 1
+            mdata[3] -= 1
+        else:
+            mdata[1] -= 1
+            mdata[0] -= 1
+    else:
+        if mdata[1] == mdata[3]-1:  # if p == vislim
+            win.scroll(1)
+            mdata[1] += 1
+            mdata[2] += 1
+            mdata[3] += 1
+        else:
+            mdata[0] += 1
+            mdata[1] += 1
+    win.addstr(mdata[0],xmargin,keys[mdata[1]],curses.color_pair(colors[1]))
+
+# colors contiene fg/bg y el color de énfasis respectivamente
+# data se usa cuando se necesita que wrwrap o algún binding use información de algún objeto que le pasemos al menú
+def menu(win,wcaps,opts,wrwrap,emptyopts=False,bindings={},allowesc=True,colors=(0,1),data=None):
+    curses.curs_set(0)
+    mwin = win.derwin(*wcaps)
+    mwin.keypad(1)
+    mwin.bkgd(curses.color_pair(colors[0]))
+    mwin.scrollok(1)
+    mwin.refresh()
+    mdata = [0,0,0,wcaps[0]]  # menu data: p, sp, minlim, vislim
+    keys = list(opts.keys())
+    if not emptyopts and not len(opts): raise ValueError("No se han especificado opciones")
+    wrwrap(mwin,wcaps,opts,0,mdata,data,colors)
+    #interact part
     while True:
-        k = stdscr.getch()
-        if k == curses.KEY_UP:
-            if e:
-                if e == minpag:
-                    maxpag -= 1
-                    minpag -= 1
-                    stdscr.move(y, x);stdscr.clrtobot()
-                    mp = 0
-                    for i in it[minpag:maxpag+1]:
-                        stdscr.addstr(y+mp, x, i)
-                        mp += 1
-                else:
-                    stdscr.addstr(y+p, x, it[e])
-                    p -= 1
-                e -= 1
-                stdscr.addstr(y+p, x, it[e], curses.color_pair(15))
-        if k == curses.KEY_DOWN:
-            if e != len(it)-1:
-                if e == maxpag:
-                    maxpag += 1
-                    minpag += 1
-                    stdscr.move(y,x);stdscr.clrtobot()
-                    mp = 0
-                    for i in it[minpag:maxpag]:
-                        stdscr.addstr(y+mp, x, i)
-                        mp += 1
-                else:
-                    stdscr.addstr(y+p, x, it[e])
-                    p += 1
-                e += 1
-                stdscr.addstr(y+p, x, it[e], curses.color_pair(15))
-        if k == 10:
-            res=d[it[e]]()
-            if res:
-                return res
-            return
+        ch = mwin.getch()
+        if ch == 27:  # ESC
+            if not allowesc: continue
+            del mwin
+            return 0
+        # mdata[1] is minlim
+        # mdata[2] is vislim
+        if ch == 259:  # UP
+            if not mdata[1]: continue
+            wrwrap(mwin,wcaps,opts,1,mdata,data,colors)
+        if ch == 258:  # DOWN
+            if mdata[1] == len(opts)-1: continue
+            wrwrap(mwin,wcaps,opts,2,mdata,data,colors)
+        if ch == 10:  # ENTER
+            del mwin
+            return opts[keys[mdata[1]]]()
+        if not ch in bindings: continue
+        bindings[ch](mwin,wcaps,opts,mdata,data)
+    #Si se alcanza el límite, el scroll lo hace menu()
+    #R: No, es convenible que el scroll lo haga la
+    #función wrapper, ya que si hay que srollear,
+    #también puede que se necesiten hacer arreglos antes
+    #o después. Es mejor dejarle todo ese trabajo.
 
-def menu(stdscr, y: int, x: int, d: dict, aster=0, esc_r1=0) -> None:
-    curses.use_default_colors()
-    curses.init_pair(15,0,15)
-    it = list(d.keys())
-    p = 0
-    my=stdscr.getmaxyx()[0]
-    for i in d:
-        stdscr.addstr(y+p, x, i)
-        p += 1
-    p = 0
-    stdscr.addstr(y+p, x, it[p], curses.color_pair(15))
-    while True:
-        k = stdscr.getch() # Key
-        if k == 259:
-            if p:
-                stdscr.addstr(y+p, x, it[p])
-                p -= 1
-                stdscr.addstr(y+p, x, it[p], curses.color_pair(15))
-        if k == 258:
-            if p != len(it) - 1:
-                stdscr.addstr(y+p, x, it[p])
-                p += 1
-                stdscr.addstr(y+p, x, it[p], curses.color_pair(15))
-        if k == 27:
-            stdscr.addstr(y+p, x, it[p])
-            stdscr.noutrefresh()
-            curses.doupdate()
-            if esc_r1: return 1
-            return
-        if k == 10:
-            stdscr.addstr(y+p, x, it[p])
-            stdscr.noutrefresh()
-            curses.doupdate()
-            if aster:
-                for i in range(my):
-                    stdscr.addch(i, 0, ' ')
-                    stdscr.noutrefresh()
-                stdscr.addch(y+p,0,'*')
-                stdscr.noutrefresh()
-                curses.doupdate()
-            res = d[it[p]]()
-            prev_p = p
-            if res:
-                return res
-            return
-
-if __name__=="__main__":
-
-    def putstr(stdscr, text):
-        stdscr.addstr(0, 0, text)
-
+if __name__=='__main__':
     def main(stdscr):
         curses.use_default_colors()
-        curses.init_pair(15,0,15)
-        win=curses.newwin(10,50, 5, 0)
-        d = {
-                "print": lambda: putstr(stdscr, "Hello world"),
-                "opinion": lambda: putstr(stdscr, "Alto menú wacho"),
-                "autor": lambda: putstr(stdscr, "Darth Venom"),
-                "exit": exit
-            }
+        curses.init_pair(1,0,15)
+        curses.init_pair(2,15,20)
+        curses.curs_set(0)
+        caps=stdscr.getmaxyx()
+        opts = {"exit": exit, "continue": lambda: 1, "t1": lambda: 1, "t2": lambda: 1, "t3": lambda: 1, "t4": lambda: 1}
         while True:
-            menu(win, 3, 0, d)
+            if (menu(stdscr,(4,20,caps[0]//2-2,caps[1]//2-10),opts,defwrite,allowesc=True,colors=(2,1))):
+                stdscr.move(0,0);stdscr.clrtobot()
+                continue
+            else: break
     curses.wrapper(main)
